@@ -1,0 +1,24 @@
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+media/
+static/
+
+# Node.js
+front-end/node_modules/
+npm-debug.log
+
+# React
+/build
+/dist
+
+# Celery
+celerybeat-schedule
+
+# Virtual environment
+venv/
+.env

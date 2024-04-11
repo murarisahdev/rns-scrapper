@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  web:
+    tty: true
+    stdin_open: true
+    build:
+      context: ./rns_management_backend
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./rns_management_backend/:/app/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+  worker:
+    restart: always
+    build:
+      context: ./rns_management_backend
+      dockerfile: Dockerfile
+    command: celery -A rns_management_backend worker -l info
+    volumes:
+      - .:/code
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+
+  beat:
+    restart: always
+    build:
+      context: ./rns_management_backend
+      dockerfile: Dockerfile
+    command: celery -A rns_management_backend beat -l info
+    volumes:
+      - .:/code
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+
+  redis:
+    image: redis:latest
+    ports:
+      - '6379:6379'
+  frontend:
+    container_name: rsn-frontend
+    build: ./front-end
+    command: npm start
+    volumes:
+      - ./front-end/:/app/
+    ports:
+      - 3000:3000
+
+volumes:
+  postgres_data:
